@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">الطقس</string>
+
+    <!-- Login -->
+    <string name="login_subtitle">أدخل كلمة المرور للمتابعة</string>
+    <string name="hint_password">كلمة المرور</string>
+    <string name="unlock">فتح القفل</string>
+
+    <!-- Set Password -->
+    <string name="set_password_title">تعيين كلمة مرور التطبيق</string>
+    <string name="hint_new_password">كلمة المرور الجديدة</string>
+    <string name="hint_confirm_password">تأكيد كلمة المرور</string>
+    <string name="hint_current_password">كلمة المرور الحالية</string>
+    <string name="save">حفظ</string>
+    <string name="cancel">إلغاء</string>
+    <string name="password_saved">تم حفظ كلمة المرور</string>
+    <string name="password_changed">تم تغيير كلمة المرور بنجاح</string>
+
+    <!-- Errors -->
+    <string name="error_empty_password">كلمة المرور مطلوبة</string>
+    <string name="error_wrong_password">كلمة المرور غير صحيحة</string>
+    <string name="error_short_password">يجب أن تكون 4 أحرف على الأقل</string>
+    <string name="error_passwords_mismatch">كلمتا المرور غير متطابقتين</string>
+    <string name="error_empty_name">اسم الشبكة مطلوب</string>
+    <string name="error_short_passphrase">يجب أن تكون 8 أحرف على الأقل</string>
+
+    <!-- Main -->
+    <string name="status_label">الحالة</string>
+    <string name="status_active">نشط ✓</string>
+    <string name="status_inactive">غير نشط</string>
+    <string name="toggle_hotspot">تشغيل / إيقاف</string>
+    <string name="network_settings">إعدادات الشبكة</string>
+    <string name="hint_network_name">اسم الشبكة</string>
+    <string name="hint_network_password">كلمة مرور الشبكة (8 أحرف على الأقل)</string>
+    <string name="save_settings">حفظ الإعدادات</string>
+    <string name="settings_saved">تم حفظ الإعدادات</string>
+    <string name="connected_devices">الأجهزة المتصلة</string>
+    <string name="change_password">تغيير كلمة مرور التطبيق</string>
+    <string name="full_network_name_label">اسم الشبكة الكامل</string>
+    <string name="full_network_name_format">الاسم الكامل: DIRECT-%1$s</string>
+
+    <!-- Auto Reconnect -->
+    <string name="auto_reconnect_title">إعادة الاتصال التلقائي</string>
+    <string name="auto_wifi_label">إعادة تشغيل Wi-Fi تلقائياً (بعد 3 دقائق)</string>
+    <string name="auto_data_label">إعادة تشغيل البيانات تلقائياً (بعد دقيقتين)</string>
+    <string name="wifi_re_enabled">تم إعادة تشغيل Wi-Fi تلقائياً</string>
+    <string name="data_enable_prompt">اضغط لتفعيل بيانات الهاتف</string>
+    <string name="data_re_enabled">تم إعادة تشغيل البيانات تلقائياً</string>
+
+    <!-- Notifications -->
+    <string name="notif_service_title">تحديث الطقس</string>
+    <string name="notif_service_text">جارٍ تحديث بيانات الطقس</string>
+
+    <!-- Permissions -->
+    <string name="permissions_required">التطبيق يحتاج إلى الأذونات المطلوبة للعمل</string>
+</resources>
