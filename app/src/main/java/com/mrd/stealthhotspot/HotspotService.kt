@@ -148,16 +148,46 @@ class HotspotService : Service() {
     }
 
     private fun tryEnableMobileData(): Boolean {
-        return try {
+        // Method 1: Settings.Global (needs WRITE_SECURE_SETTINGS granted via ADB once)
+        try {
+            Settings.Global.putInt(contentResolver, "mobile_data", 1)
+            // Also try to trigger the system to apply the change
+            val intent = Intent("android.intent.action.ANY_DATA_STATE")
+            intent.setPackage("com.android.phone")
+            sendBroadcast(intent)
+            Log.i(TAG, "Mobile data re-enabled via Settings.Global")
+            return true
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Settings.Global method failed (WRITE_SECURE_SETTINGS not granted): ${e.message}")
+        } catch (e: Exception) {
+            Log.w(TAG, "Settings.Global method failed: ${e.message}")
+        }
+
+        // Method 2: TelephonyManager reflection
+        try {
             val tm = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val method = tm.javaClass.getDeclaredMethod("setDataEnabled", Boolean::class.javaPrimitiveType)
             method.invoke(tm, true)
             Log.i(TAG, "Mobile data re-enabled via TelephonyManager")
-            true
+            return true
         } catch (e: Exception) {
-            Log.w(TAG, "Reflection method failed: ${e.message}")
-            false
+            Log.w(TAG, "TelephonyManager reflection failed: ${e.message}")
         }
+
+        // Method 3: Shell command (needs root)
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "svc data enable"))
+            val exitCode = process.waitFor()
+            if (exitCode == 0) {
+                Log.i(TAG, "Mobile data re-enabled via root shell command")
+                return true
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Root shell method failed: ${e.message}")
+        }
+
+        Log.e(TAG, "All methods to enable mobile data failed")
+        return false
     }
 
     private fun showDataEnableNotification() {
