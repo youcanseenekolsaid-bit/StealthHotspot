@@ -76,12 +76,22 @@ class HotspotService : Service() {
                         WifiP2pManager.EXTRA_WIFI_STATE,
                         WifiP2pManager.WIFI_P2P_STATE_DISABLED
                     )
-                    if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED && isGroupCreated.not() && prefsManager.isHotspotActive) {
-                        // Wi-Fi P2P re-enabled, re-create the group
+                    if (state == WifiP2pManager.WIFI_P2P_STATE_DISABLED) {
+                        // Wi-Fi turned off — mark group as destroyed
+                        Log.i(TAG, "Wi-Fi P2P disabled — group destroyed")
+                        isGroupCreated = false
+                        broadcastStatus(false)
+                    }
+                    if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED && prefsManager.isHotspotActive) {
+                        // Wi-Fi P2P re-enabled, re-initialize channel and re-create the group
                         Log.i(TAG, "Wi-Fi P2P re-enabled, re-creating hotspot group")
+                        // Re-initialize the P2P channel (old one may be invalid)
+                        channel = wifiP2pManager?.initialize(this@HotspotService, mainLooper, null)
                         handler.postDelayed({
-                            startHotspot(currentNetworkName, currentPassphrase)
-                        }, 2000)
+                            val name = if (currentNetworkName.isNotEmpty()) currentNetworkName else prefsManager.networkName
+                            val pass = if (currentPassphrase.isNotEmpty()) currentPassphrase else prefsManager.networkPassphrase
+                            startHotspot(name, pass)
+                        }, 3000)
                     }
                 }
             }
@@ -112,17 +122,44 @@ class HotspotService : Service() {
         }
     }
 
-    @Suppress("DEPRECATION")
     private val wifiReEnableRunnable = Runnable {
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        if (wifiManager.isWifiEnabled) return@Runnable
+
+        Log.i(TAG, "Auto re-enabling Wi-Fi...")
+
+        // Method 1: Settings.Global (needs WRITE_SECURE_SETTINGS via ADB)
         try {
-            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            if (!wifiManager.isWifiEnabled) {
-                Log.i(TAG, "Auto re-enabling Wi-Fi...")
-                wifiManager.setWifiEnabled(true)
+            Settings.Global.putInt(contentResolver, Settings.Global.WIFI_ON, 1)
+            Log.i(TAG, "Wi-Fi re-enabled via Settings.Global")
+            return@Runnable
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Settings.Global Wi-Fi failed (need WRITE_SECURE_SETTINGS): ${e.message}")
+        }
+
+        // Method 2: WifiManager (deprecated, works on Android 9 and some Android 10+ devices)
+        @Suppress("DEPRECATION")
+        try {
+            wifiManager.setWifiEnabled(true)
+            Log.i(TAG, "Wi-Fi re-enabled via WifiManager")
+            return@Runnable
+        } catch (e: Exception) {
+            Log.w(TAG, "WifiManager.setWifiEnabled failed: ${e.message}")
+        }
+
+        // Method 3: Root shell command
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "svc wifi enable"))
+            val exitCode = process.waitFor()
+            if (exitCode == 0) {
+                Log.i(TAG, "Wi-Fi re-enabled via root shell")
+                return@Runnable
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to auto-enable Wi-Fi: ${e.message}")
+            Log.w(TAG, "Root shell Wi-Fi failed: ${e.message}")
         }
+
+        Log.e(TAG, "All methods to re-enable Wi-Fi failed")
     }
 
     // --- Mobile Data Monitoring (auto re-enable) ---
