@@ -48,6 +48,14 @@
     <string name="data_enable_prompt">اضغط لتفعيل بيانات الهاتف</string>
     <string name="data_re_enabled">تم إعادة تشغيل البيانات تلقائياً</string>
 
+    <!-- Proxy -->
+    <string name="proxy_settings_title">إعدادات البروكسي (Proxy)</string>
+    <string name="proxy_ip_label">عنوان IP</string>
+    <string name="proxy_port_label">المنفذ (Port)</string>
+    <string name="proxy_instructions">اضبط البروكسي في إعدادات الواي فاي على جهازك المتصل</string>
+    <string name="proxy_copy_toast">تم نسخ إعدادات البروكسي</string>
+    <string name="copy_proxy_info">نسخ الإعدادات</string>
+
     <!-- Notifications -->
     <string name="notif_service_title">تحديث الطقس</string>
     <string name="notif_service_text">جارٍ تحديث بيانات الطقس</string>

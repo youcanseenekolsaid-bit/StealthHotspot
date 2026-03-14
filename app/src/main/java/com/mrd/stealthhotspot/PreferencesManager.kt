@@ -15,9 +15,11 @@ class PreferencesManager(context: Context) {
         private const val KEY_FIRST_LAUNCH = "first_launch"
         private const val KEY_AUTO_WIFI = "auto_wifi_enabled"
         private const val KEY_AUTO_DATA = "auto_data_enabled"
+        private const val KEY_PROXY_PORT = "proxy_port"
 
         private const val DEFAULT_NETWORK_NAME = "MyNetwork"
         private const val DEFAULT_NETWORK_PASSPHRASE = "12345678"
+        private const val DEFAULT_PROXY_PORT = 8080
     }
 
     private val prefs: SharedPreferences =
@@ -56,6 +58,12 @@ class PreferencesManager(context: Context) {
     var isHotspotActive: Boolean
         get() = prefs.getBoolean(KEY_HOTSPOT_ACTIVE, false)
         set(value) = prefs.edit().putBoolean(KEY_HOTSPOT_ACTIVE, value).apply()
+
+    // --- Proxy ---
+
+    var proxyPort: Int
+        get() = prefs.getInt(KEY_PROXY_PORT, DEFAULT_PROXY_PORT)
+        set(value) = prefs.edit().putInt(KEY_PROXY_PORT, value).apply()
 
     // --- Auto Reconnect ---
 

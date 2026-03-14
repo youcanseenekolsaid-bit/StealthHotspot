@@ -2,6 +2,8 @@ package com.mrd.stealthhotspot
 
 import android.Manifest
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -43,6 +45,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fullNetworkNameText: TextView
     private lateinit var autoWifiSwitch: SwitchMaterial
     private lateinit var autoDataSwitch: SwitchMaterial
+    private lateinit var proxyIpText: TextView
+    private lateinit var proxyPortText: TextView
+    private lateinit var copyProxyButton: MaterialButton
 
     // Service binding
     private var hotspotService: HotspotService? = null
@@ -113,6 +118,9 @@ class MainActivity : AppCompatActivity() {
         fullNetworkNameText = findViewById(R.id.fullNetworkNameText)
         autoWifiSwitch = findViewById(R.id.autoWifiSwitch)
         autoDataSwitch = findViewById(R.id.autoDataSwitch)
+        proxyIpText = findViewById(R.id.proxyIpText)
+        proxyPortText = findViewById(R.id.proxyPortText)
+        copyProxyButton = findViewById(R.id.copyProxyButton)
     }
 
     private fun loadSettings() {
@@ -121,6 +129,9 @@ class MainActivity : AppCompatActivity() {
         autoWifiSwitch.isChecked = prefsManager.isAutoWifiEnabled
         autoDataSwitch.isChecked = prefsManager.isAutoDataEnabled
         updateNetworkNamePreview()
+        // Proxy info
+        proxyIpText.text = HotspotService.P2P_HOST_IP
+        proxyPortText.text = prefsManager.proxyPort.toString()
     }
 
     private fun setupListeners() {
@@ -139,6 +150,13 @@ class MainActivity : AppCompatActivity() {
 
         autoDataSwitch.setOnCheckedChangeListener { _, isChecked ->
             prefsManager.isAutoDataEnabled = isChecked
+        }
+
+        copyProxyButton.setOnClickListener {
+            val proxyInfo = "${HotspotService.P2P_HOST_IP}:${prefsManager.proxyPort}"
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Proxy", proxyInfo))
+            Toast.makeText(this, R.string.proxy_copy_toast, Toast.LENGTH_SHORT).show()
         }
     }
 

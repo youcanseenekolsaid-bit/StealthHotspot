@@ -41,9 +41,13 @@ class HotspotService : Service() {
         const val EXTRA_NETWORK_NAME = "network_name"
         const val EXTRA_PASSPHRASE = "passphrase"
         const val EXTRA_CONNECTED_COUNT = "connected_count"
+        const val EXTRA_PROXY_PORT = "proxy_port"
 
         const val WIFI_RESTART_DELAY_MS = 3 * 60 * 1000L   // 3 minutes
         const val DATA_RESTART_DELAY_MS = 2 * 60 * 1000L   // 2 minutes
+
+        // Wi-Fi Direct group owner IP is always 192.168.49.1
+        const val P2P_HOST_IP = "192.168.49.1"
     }
 
     private var wifiP2pManager: WifiP2pManager? = null
@@ -53,6 +57,7 @@ class HotspotService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private lateinit var prefsManager: PreferencesManager
     private val handler = Handler(Looper.getMainLooper())
+    private var proxyServer: ProxyServer? = null
 
     // Stored network config for re-creating group after Wi-Fi restart
     private var currentNetworkName: String = ""
@@ -286,12 +291,28 @@ class HotspotService : Service() {
         registerWifiStateReceiver()
         registerDataCallback()
         acquireWakeLock()
+        startProxy()
     }
+
+    private fun startProxy() {
+        val port = prefsManager.proxyPort
+        proxyServer = ProxyServer(port)
+        proxyServer?.start()
+        Log.i(TAG, "Proxy server started on $P2P_HOST_IP:$port")
+    }
+
+    private fun stopProxy() {
+        proxyServer?.stop()
+        proxyServer = null
+    }
+
+    fun getProxyPort(): Int = prefsManager.proxyPort
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
                 stopHotspot()
+                stopProxy()
                 stopSelf()
                 return START_NOT_STICKY
             }
@@ -312,6 +333,7 @@ class HotspotService : Service() {
 
     override fun onDestroy() {
         stopHotspot()
+        stopProxy()
         try { unregisterReceiver(p2pReceiver) } catch (_: Exception) {}
         try { unregisterReceiver(wifiStateReceiver) } catch (_: Exception) {}
         dataNetworkCallback?.let { connectivityManager?.unregisterNetworkCallback(it) }
