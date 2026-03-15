@@ -127,10 +127,9 @@ class HotspotService : Service() {
         }
     }
 
-private val wifiReEnableRunnable = object : Runnable {
-    override fun run() {
+    private val wifiReEnableRunnable = Runnable {
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled) return
+        if (wifiManager.isWifiEnabled) return@Runnable
 
         Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
 
@@ -202,7 +201,7 @@ private val wifiReEnableRunnable = object : Runnable {
         }
 
         Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
-        // الإصلاح هنا: نستخدم 'this' للإشارة إلى الـ Runnable الحالي
+        // Schedule retry
         handler.postDelayed(this, 30_000)
     }
 
