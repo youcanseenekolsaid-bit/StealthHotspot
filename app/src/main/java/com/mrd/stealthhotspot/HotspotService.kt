@@ -131,28 +131,64 @@ class HotspotService : Service() {
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         if (wifiManager.isWifiEnabled) return@Runnable
 
-        Log.i(TAG, "Auto re-enabling Wi-Fi...")
+        Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
 
-        // Method 1: Settings.Global (needs WRITE_SECURE_SETTINGS via ADB)
-        try {
-            Settings.Global.putInt(contentResolver, Settings.Global.WIFI_ON, 1)
-            Log.i(TAG, "Wi-Fi re-enabled via Settings.Global")
-            return@Runnable
-        } catch (e: SecurityException) {
-            Log.w(TAG, "Settings.Global Wi-Fi failed (need WRITE_SECURE_SETTINGS): ${e.message}")
+        // Method 1: cmd wifi (Android 11+ / API 30+, works on Samsung One UI)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            try {
+                val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "cmd wifi set-wifi-enabled enabled"))
+                val exitCode = process.waitFor()
+                if (exitCode == 0) {
+                    Log.i(TAG, "Wi-Fi re-enabled via 'cmd wifi'")
+                    return@Runnable
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "cmd wifi failed: ${e.message}")
+            }
         }
 
-        // Method 2: WifiManager (deprecated, works on Android 9 and some Android 10+ devices)
-        @Suppress("DEPRECATION")
+        // Method 2: WifiManager via reflection (works on some Samsung devices)
         try {
-            wifiManager.setWifiEnabled(true)
-            Log.i(TAG, "Wi-Fi re-enabled via WifiManager")
+            val method = wifiManager.javaClass.getDeclaredMethod("setWifiEnabled", Boolean::class.javaPrimitiveType)
+            method.isAccessible = true
+            method.invoke(wifiManager, true)
+            Log.i(TAG, "Wi-Fi re-enabled via WifiManager reflection")
             return@Runnable
         } catch (e: Exception) {
-            Log.w(TAG, "WifiManager.setWifiEnabled failed: ${e.message}")
+            Log.w(TAG, "WifiManager reflection failed: ${e.message}")
         }
 
-        // Method 3: Root shell command
+        // Method 3: Settings.Global (needs WRITE_SECURE_SETTINGS via ADB)
+        try {
+            Settings.Global.putInt(contentResolver, Settings.Global.WIFI_ON, 1)
+            // Force the system to re-read the setting
+            val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            Log.i(TAG, "Wi-Fi setting changed via Settings.Global")
+            // Wait and check if it actually enabled
+            handler.postDelayed({
+                val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                if (!wm.isWifiEnabled) {
+                    Log.w(TAG, "Settings.Global didn't trigger hardware Wi-Fi enable")
+                }
+            }, 3000)
+            return@Runnable
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Settings.Global failed (WRITE_SECURE_SETTINGS not granted): ${e.message}")
+        }
+
+        // Method 4: WifiManager deprecated API (works on Android 9 and some 10 devices)
+        @Suppress("DEPRECATION")
+        try {
+            val result = wifiManager.setWifiEnabled(true)
+            if (result) {
+                Log.i(TAG, "Wi-Fi re-enabled via deprecated WifiManager.setWifiEnabled")
+                return@Runnable
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "WifiManager.setWifiEnabled deprecated call failed: ${e.message}")
+        }
+
+        // Method 5: Root shell command
         try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "svc wifi enable"))
             val exitCode = process.waitFor()
@@ -164,7 +200,9 @@ class HotspotService : Service() {
             Log.w(TAG, "Root shell Wi-Fi failed: ${e.message}")
         }
 
-        Log.e(TAG, "All methods to re-enable Wi-Fi failed")
+        Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
+        // Schedule retry
+        handler.postDelayed(this, 30_000)
     }
 
     // --- Mobile Data Monitoring (auto re-enable) ---

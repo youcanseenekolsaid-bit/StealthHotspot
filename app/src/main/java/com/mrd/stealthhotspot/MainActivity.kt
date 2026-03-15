@@ -10,9 +10,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.PowerManager
+import android.provider.Settings
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -85,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         prefsManager = PreferencesManager(this)
         initViews()
         requestPermissions()
+        requestBatteryOptimizationExemption()
         loadSettings()
         setupListeners()
     }
@@ -337,6 +341,25 @@ class MainActivity : AppCompatActivity() {
             val denied = grantResults.any { it != PackageManager.PERMISSION_GRANTED }
             if (denied) {
                 Toast.makeText(this, R.string.permissions_required, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    @Suppress("BatteryLife")
+    private fun requestBatteryOptimizationExemption() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            try {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                // Fallback: open battery optimization settings
+                try {
+                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                    startActivity(intent)
+                } catch (_: Exception) {}
             }
         }
     }
