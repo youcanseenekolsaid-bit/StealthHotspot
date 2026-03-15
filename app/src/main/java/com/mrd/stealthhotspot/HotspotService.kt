@@ -127,11 +127,12 @@ class HotspotService : Service() {
         }
     }
 
-    private val wifiReEnableRunnable = Runnable {
-        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled) return@Runnable
+    private val wifiReEnableRunnable = object : Runnable {
+        override fun run() {
+            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            if (wifiManager.isWifiEnabled) return
 
-        Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
+            Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
 
         // Method 1: cmd wifi (Android 11+ / API 30+, works on Samsung One UI)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
@@ -200,9 +201,9 @@ class HotspotService : Service() {
             Log.w(TAG, "Root shell Wi-Fi failed: ${e.message}")
         }
 
-        Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
-        // Schedule retry
-        handler.postDelayed(this, 30_000)
+        Log.e(TAG, "All methods failed — retrying in 30 seconds")
+            handler.postDelayed(this, 30_000)
+        }
     }
 
     // --- Mobile Data Monitoring (auto re-enable) ---
