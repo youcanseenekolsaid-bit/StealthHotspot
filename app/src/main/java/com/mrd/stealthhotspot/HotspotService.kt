@@ -128,36 +128,35 @@ class HotspotService : Service() {
     }
 
     private val wifiReEnableRunnable = object : Runnable {
-    override fun run() {
-        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled) return
+        override fun run() {
+            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            if (wifiManager.isWifiEnabled) return
 
-        Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
+            Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
 
-        // Method 1: cmd wifi (Android 11+ / API 30+, works on Samsung One UI)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            try {
-                val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "cmd wifi set-wifi-enabled enabled"))
-                val exitCode = process.waitFor()
-                if (exitCode == 0) {
-                    Log.i(TAG, "Wi-Fi re-enabled via 'cmd wifi'")
-                    return 
+            // Method 1: cmd wifi (Android 11+ / API 30+, works on Samsung One UI)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                try {
+                    val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "cmd wifi set-wifi-enabled enabled"))
+                    val exitCode = process.waitFor()
+                    if (exitCode == 0) {
+                        Log.i(TAG, "Wi-Fi re-enabled via 'cmd wifi'")
+                        return 
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "cmd wifi failed: ${e.message}")
                 }
-            } catch (e: Exception) {
-                Log.w(TAG, "cmd wifi failed: ${e.message}")
             }
+
+            // ... (بقية الطرق 2 و 3 و 4 و 5 كما هي في الكود الخاص بك) ...
+
+            Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
+            
+            // الإصلاح الجوهري هنا:
+            // استخدام 'this' داخل 'object : Runnable' يشير الآن بشكل صحيح إلى الـ Runnable نفسه
+            handler.postDelayed(this, 30_000)
         }
-
-        // ... (بقية الطرق 2 و 3 و 4 و 5 كما هي في الكود الخاص بك) ...
-
-        Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
-        
-        // الإصلاح الجوهري هنا:
-        // استخدام 'this' داخل 'object : Runnable' يشير الآن بشكل صحيح إلى الـ Runnable نفسه
-        handler.postDelayed(this, 30_000)
-    }
-}
-
+    
         // Method 2: WifiManager via reflection (works on some Samsung devices)
         try {
             val method = wifiManager.javaClass.getDeclaredMethod("setWifiEnabled", Boolean::class.javaPrimitiveType)
