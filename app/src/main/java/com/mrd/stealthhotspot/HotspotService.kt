@@ -127,9 +127,10 @@ class HotspotService : Service() {
         }
     }
 
-    private val wifiReEnableRunnable = Runnable {
+    private val wifiReEnableRunnable = object : Runnable {
+    override fun run() {
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        if (wifiManager.isWifiEnabled) return@Runnable
+        if (wifiManager.isWifiEnabled) return
 
         Log.i(TAG, "Auto re-enabling Wi-Fi (trying all methods)...")
 
@@ -140,12 +141,22 @@ class HotspotService : Service() {
                 val exitCode = process.waitFor()
                 if (exitCode == 0) {
                     Log.i(TAG, "Wi-Fi re-enabled via 'cmd wifi'")
-                    return@Runnable
+                    return 
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "cmd wifi failed: ${e.message}")
             }
         }
+
+        // ... (بقية الطرق 2 و 3 و 4 و 5 كما هي في الكود الخاص بك) ...
+
+        Log.e(TAG, "All methods to re-enable Wi-Fi failed — trying again in 30 seconds")
+        
+        // الإصلاح الجوهري هنا:
+        // استخدام 'this' داخل 'object : Runnable' يشير الآن بشكل صحيح إلى الـ Runnable نفسه
+        handler.postDelayed(this, 30_000)
+    }
+}
 
         // Method 2: WifiManager via reflection (works on some Samsung devices)
         try {
