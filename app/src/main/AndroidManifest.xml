@@ -65,7 +65,27 @@
             <meta-data
                 android:name="android.service.quicksettings.ACTIVE_TILE"
                 android:value="false" />
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
         </service>
+
+        <!-- Long-press on Wi-Fi tile opens Wi-Fi settings -->
+        <activity-alias
+            android:name=".WifiTileSettings"
+            android:targetActivity=".WifiSettingsRedirect"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity
+            android:name=".WifiSettingsRedirect"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.NoDisplay" />
+
 
     </application>
 

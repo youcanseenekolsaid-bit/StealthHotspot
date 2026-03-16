@@ -1,5 +1,7 @@
 package com.mrd.stealthhotspot
 
+import android.content.Intent
+import android.provider.Settings
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 
@@ -8,13 +10,18 @@ import android.service.quicksettings.TileService
  *
  * Appears in the notification shade as "Wi Fi" with a Wi-Fi icon.
  * Toggles between active/inactive visually — does absolutely nothing.
+ * Long press opens Wi-Fi settings (network list).
  * Pure camouflage.
  */
 class WifiTileService : TileService() {
 
+    override fun onTileAdded() {
+        super.onTileAdded()
+        updateTile(false)
+    }
+
     override fun onStartListening() {
         super.onStartListening()
-        // Restore saved state
         val prefs = getSharedPreferences("tile_prefs", MODE_PRIVATE)
         val isActive = prefs.getBoolean("wifi_tile_active", false)
         updateTile(isActive)
