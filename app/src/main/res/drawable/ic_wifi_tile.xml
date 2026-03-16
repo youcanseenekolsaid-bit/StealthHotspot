@@ -4,20 +4,14 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Arc 1 (outermost) -->
+    <!-- Wi-Fi signal arcs -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M0.69,6.94l1.41,1.41C6.33,4.12 11.46,2 12,2s5.67,2.12 9.9,6.35l1.41,-1.41C18.6,2.23 13.18,0 12,0S5.4,2.23 0.69,6.94z" />
-    <!-- Arc 2 -->
+        android:pathData="M1,9l2,2c4.97,-4.97 13.03,-4.97 18,0l2,-2C16.93,2.93 7.08,2.93 1,9z" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M3.53,9.36l1.41,1.41C7.81,7.9 9.83,7 12,7s4.19,0.9 7.07,3.77l1.41,-1.41C17.19,6.07 14.76,5 12,5S6.81,6.07 3.53,9.36z" />
-    <!-- Arc 3 -->
+        android:pathData="M5,13l2,2c2.76,-2.76 7.24,-2.76 10,0l2,-2C15.14,9.14 8.87,9.14 5,13z" />
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M6.34,12.17l1.41,1.41C9.37,11.96 10.6,11.5 12,11.5s2.63,0.46 4.24,2.08l1.41,-1.41C15.68,10.2 13.93,9.5 12,9.5s-3.68,0.7 -5.66,2.67z" />
-    <!-- Arc 4 (dot/innermost) -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M9.17,15l3,3 3,-3c-1.65,-1.66 -4.34,-1.66 -6,0z" />
+        android:pathData="M9,17l3,3 3,-3c-1.65,-1.66 -4.34,-1.66 -6,0z" />
 </vector>
